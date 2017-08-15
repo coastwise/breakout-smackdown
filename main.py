@@ -3,6 +3,8 @@ env = gym.make('Breakout-v0')
 
 import numpy
 
+import breakout_feature_engineering as features
+
 # env.action_space allows for all 4 directions
 # [up, down, right, left]
 # i'm only going to allow two: [right, left]
@@ -10,10 +12,6 @@ rightleft_action_space = gym.spaces.Discrete(2)
 
 print( env.observation_space )
 
-paddle_min_x = 8
-paddle_max_x = 151
-paddle_min_y = 189
-paddle_max_y = 192
 
 for episode in range( 1 ):
 	prev_obs = env.reset().astype( numpy.int16 )
@@ -34,22 +32,7 @@ for episode in range( 1 ):
 					print( obs[col_idx][row_idx] )
 		'''
 
-		paddle_start = paddle_max_x
-		paddle_end = paddle_min_x
-		y = 190
-		needle = numpy.array([200,72,72])
-		for x in range( paddle_min_x, paddle_max_x + 1 ):
-			pixel = obs[y][x]
-			if pixel[0] == needle[0] and pixel[1] == needle[1] and pixel[2] == needle[2]:
-				if x > paddle_end:
-					paddle_end = x
-				if x < paddle_start:
-					paddle_start = x
-
-		if paddle_start < paddle_end:
-			print( "paddle between ", paddle_start, paddle_end )
-		else:
-			print( "no paddle found!" )
+		paddle_start, paddle_end = features.detect_paddle( obs )
 
 		rightleft_action = rightleft_action_space.sample()
 		action = rightleft_action + 2 # convert Discrete(2) to last two elements of Discrete(4)
