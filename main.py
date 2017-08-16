@@ -14,13 +14,16 @@ print( env.observation_space )
 
 
 for episode in range( 1 ):
-	prev_obs = env.reset().astype( numpy.int16 )
-	#obs, reward, done, info = env.step( 1 ) # need to start by pressing "down"
-	#obs = obs.astype( numpy.int16 )
-	obs = prev_obs
+	env.reset().astype( numpy.int16 )
 
-	for t in range( 5 ):
-		#env.render()
+	prev_obs, reward, done, info = env.step( 0 ) # "up" is no-op
+	prev_obs = prev_obs.astype( numpy.int16 )
+	
+	obs, reward, done, info = env.step( 1 ) # need to start by pressing "down"
+	obs = obs.astype( numpy.int16 )
+	
+	for t in range( 100 ):
+		env.render()
 		print( "tic" )
 
 		delta = obs - prev_obs
@@ -33,11 +36,17 @@ for episode in range( 1 ):
 		'''
 
 		paddle_start, paddle_end = features.detect_paddle( obs )
+		ball_x, ball_y = features.detect_ball( obs, delta )
 
-		rightleft_action = rightleft_action_space.sample()
-		action = rightleft_action + 2 # convert Discrete(2) to last two elements of Discrete(4)
+		if ball_x != 0 and ball_y != 0:
+			print( "ball", ball_x, ball_y )
+			rightleft_action = rightleft_action_space.sample()
+			action = rightleft_action + 2 # convert Discrete(2) to last two elements of Discrete(4)
 
-		action = 2 # move paddle right
+		else:
+			print( "no ball!!" )
+			action = 1 # down
+
 
 		prev_obs = obs #.astype(int16)
 		obs, reward, done, info = env.step( action )
