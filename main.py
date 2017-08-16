@@ -2,6 +2,7 @@ import gym
 env = gym.make('Breakout-v0')
 
 import numpy
+import time
 
 import breakout_feature_engineering as features
 
@@ -14,43 +15,37 @@ print( env.observation_space )
 
 
 for episode in range( 1 ):
-	env.reset().astype( numpy.int16 )
+	env.reset()
 
-	prev_obs, reward, done, info = env.step( 0 ) # "up" is no-op
-	prev_obs = prev_obs.astype( numpy.int16 )
-	
-	obs, reward, done, info = env.step( 1 ) # need to start by pressing "down"
-	obs = obs.astype( numpy.int16 )
+	observation, reward, done, info = env.step( 0 ) # "up" is no-op	
+	observation, reward, done, info = env.step( 1 ) # need to start by pressing "down"
+
+	play = features.extract_playarea_redchannel( observation )
+	prev_play = play
 	
 	for t in range( 100 ):
 		env.render()
 		print( "tic" )
 
-		delta = obs - prev_obs
+		delta = play - prev_play
 
-		'''for col_idx, row in enumerate( delta ):
-			for row_idx, pixel in enumerate( row ):
-				if sum( pixel ) != 0:
-					print( row_idx, col_idx, pixel )
-					print( obs[col_idx][row_idx] )
-		'''
+		paddle_start, paddle_end = features.detect_paddle( play )
+		ball_x, ball_y = features.detect_ball( delta, paddle_start, paddle_end )
 
-		paddle_start, paddle_end = features.detect_paddle( obs )
-		ball_x, ball_y = features.detect_ball( obs, delta )
-
-		if ball_x != 0 and ball_y != 0:
+		if ball_x != -1 and ball_y != -1:
 			print( "ball", ball_x, ball_y )
 			rightleft_action = rightleft_action_space.sample()
 			action = rightleft_action + 2 # convert Discrete(2) to last two elements of Discrete(4)
-
 		else:
 			print( "no ball!!" )
-			action = 1 # down
+			action = 1 # down to serve
 
+		#numpy.set_printoptions(threshold=numpy.nan)
+		#print( numpy.argwhere( red == 142 ) )		
 
-		prev_obs = obs #.astype(int16)
-		obs, reward, done, info = env.step( action )
-		obs = obs.astype( numpy.int16 )
+		prev_play = play
+		observation, reward, done, info = env.step( action )
+		play = features.extract_playarea_redchannel( observation )
 
 		if done:
 			print( "Episode finished after {} timesteps.", format( t+1 ) )

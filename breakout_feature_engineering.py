@@ -19,34 +19,45 @@ border_colour = [142, 142, 142]
 left_of_paddle_colour = [66, 158, 130]
 
 def detect_paddle( observation ):
-	paddle_start = paddle_max_x
-	paddle_end = paddle_min_x
-	y = 190
+	paddle_start = paddle_max_x + 1
+	paddle_end = paddle_min_x - 1
 	
-	for x in range( paddle_min_x, paddle_max_x + 1 ):
-		pixel = observation[y][x]
-		if pixel[0] == paddle_colour[0] and pixel[1] == paddle_colour[1] and pixel[2] == paddle_colour[2]:
-			if x > paddle_end:
-				paddle_end = x
-			if x < paddle_start:
-				paddle_start = x
+	paddle_top = observation[157, :]
+	paddle = numpy.where( paddle_top == paddle_colour[0] )
+
+	paddle_start = paddle[0][0]
+	paddle_end = paddle[0][-1]
+
+	print( "paddle", paddle_start, paddle_end )
+
+	if paddle_end - paddle_start > 16:
+		print( "paddle too long!")
+		paddle_bottom = observation[160, :]
+		paddle = numpy.where( paddle_bottom == paddle_colour[0] )
+		paddle_start = paddle[0][0]
+		paddle_end = paddle[0][-1]
+		print( "paddle", paddle_start, paddle_end )
 
 	return paddle_start, paddle_end
 
 
 
-play_min_x = 8
-play_max_x = 151
-play_min_y = 32
-play_max_y = 204
+def extract_playarea_redchannel( observation ):
+	play_min_x = 8
+	play_max_x = 151
+	play_min_y = 32
+	play_max_y = 204
+	return observation[ play_min_y : play_max_y, play_min_x : play_max_x, 0 ].astype( numpy.int16 )
+
 
 ball_colour = numpy.array([200,72,72])
 
-def detect_ball( observation, delta ):
-	for y in range( play_min_y, play_max_y + 1 ):
-		for x in range( play_min_x, play_max_x + 1 ):
-			if delta[y][x][0] == ball_colour[0]:
+def detect_ball( delta, paddle_start, paddle_end ):
+	for y, row in enumerate( delta ):
+		for x, red_value in enumerate( row ):
+			if red_value == ball_colour[0]:
 				return x, y
 
-	return 0, 0 # could not find
+	return -1, -1 # not found
+
 
