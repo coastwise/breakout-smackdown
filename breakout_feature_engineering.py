@@ -56,6 +56,12 @@ def detect_ball( delta, paddle_start, paddle_end ):
 	for y, row in enumerate( delta ):
 		for x, red_value in enumerate( row ):
 			if red_value == ball_colour[0]:
+
+				# filter out the paddle from ball detection results
+				if y >= 157 and y <= 160:
+					if x >= paddle_start and x <= paddle_end:
+						break
+
 				return x, y
 
 	return -1, -1 # not found
