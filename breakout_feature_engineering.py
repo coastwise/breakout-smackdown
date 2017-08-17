@@ -28,15 +28,11 @@ def detect_paddle( observation ):
 	paddle_start = paddle[0][0]
 	paddle_end = paddle[0][-1]
 
-	print( "paddle", paddle_start, paddle_end )
-
 	if paddle_end - paddle_start > 16:
-		print( "paddle too long!")
 		paddle_bottom = observation[160, :]
 		paddle = numpy.where( paddle_bottom == paddle_colour[0] )
 		paddle_start = paddle[0][0]
 		paddle_end = paddle[0][-1]
-		print( "paddle", paddle_start, paddle_end )
 
 	return paddle_start, paddle_end
 
