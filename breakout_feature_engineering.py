@@ -53,17 +53,12 @@ def extract_playarea_redchannel( observation ):
 ball_colour = numpy.array([200,72,72])
 
 def detect_ball( delta, paddle_start, paddle_end ):
-	for y, row in enumerate( delta ):
-		for x, red_value in enumerate( row ):
-			if red_value == ball_colour[0]:
+	red_pixels_y, red_pixels_x = numpy.where( delta == ball_colour[0] )
 
-				# filter out the paddle from ball detection results
-				if y >= 157 and y <= 160:
-					if x >= paddle_start and x <= paddle_end:
-						break
-
-				return x, y
+	for i in range( len( red_pixels_y ) ):
+		if red_pixels_y[i] >= 157 and red_pixels_y[i] <= 160:
+			if red_pixels_x[i] >= paddle_start and red_pixels_x[i] <= paddle_end:
+				continue
+		return red_pixels_x[i], red_pixels_y[i]
 
 	return -1, -1 # not found
-
-
