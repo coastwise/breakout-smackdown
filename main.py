@@ -17,13 +17,16 @@ print( env.observation_space )
 for episode in range( 1 ):
 	env.reset()
 
-	observation, reward, done, info = env.step( 0 ) # "up" is no-op	
+	observation, reward, done, info = env.step( 0 ) # no-op	
 	observation, reward, done, info = env.step( 1 ) # need to start by pressing "down"
+	t = 1
 
 	play = features.extract_playarea_redchannel( observation )
 	prev_play = play
 	
-	for t in range( 100 ):
+	while not done:
+		t += 1
+
 		env.render()
 		print( "tic" )
 
@@ -34,8 +37,14 @@ for episode in range( 1 ):
 
 		if ball_x != -1 and ball_y != -1:
 			print( "ball", ball_x, ball_y )
-			rightleft_action = rightleft_action_space.sample()
-			action = rightleft_action + 2 # convert Discrete(2) to last two elements of Discrete(4)
+
+			if ball_x < paddle_start:
+				action = 3
+			elif ball_x > paddle_end:
+				action = 2
+			else:
+				action = 0
+
 		else:
 			print( "no ball!!" )
 			action = 1 # down to serve
