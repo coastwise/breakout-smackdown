@@ -58,3 +58,13 @@ def detect_ball( delta, paddle_start, paddle_end ):
 		return red_pixels_x[i], red_pixels_y[i]
 
 	return -1, -1 # not found
+
+def ball_and_paddle_state( observation, delta ):
+	paddle_start, paddle_end = detect_paddle( observation )
+	ball_x, ball_y = detect_ball( delta, paddle_start, paddle_end )
+
+	paddle_f = paddle_start / ( observation.shape[ 1 ] - 16 )
+	ball_x_f = ball_x / observation.shape[ 1 ]
+	ball_y_f = ball_y / observation.shape[ 0 ]
+
+	return [ paddle_f, ball_x_f, ball_y_f ]
