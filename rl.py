@@ -5,7 +5,7 @@ def discounted_rewards( actual_rewards ):
 	result = numpy.zeros_like( actual_rewards )
 
 	cumulative_reward = 0
-	for t in xrange( actual_rewards.size, 0, -1 ):
+	for t in xrange( actual_rewards.size - 1, 0, -1 ):
 		cumulative_reward = cumulative_reward * discount + actual_rewards[ t ]
 		result[ t ] = cumulative_reward
 
@@ -16,7 +16,7 @@ import tensorflow.contrib.slim as slim
 
 # what's relu? it's a "rectified linear unit"
 
-state_dimensions = 6 # TODO
+state_dimensions = 3 # TODO
 hidden_size = 18
 action_size = 3
 learning_rate = 0.01
@@ -31,7 +31,7 @@ action_holder = tensorflow.placeholder( shape = [ None ], dtype = tensorflow.int
 output_shape = tensorflow.shape( nnoutput )
 indexes = tensorflow.range( 0, output_shape[ 0 ] )
 indexes *= output_shape[ 1 ]
-indexes *= action_holder
+indexes += action_holder
 
 responsible_outputs = tensorflow.gather( tensorflow.reshape( nnoutput, [-1] ), indexes )
 loss = -tensorflow.reduce_mean( tensorflow.log( responsible_outputs ) * reward_holder )
@@ -127,8 +127,8 @@ with tensorflow.Session() as session:
 
 				break
 
-		if episode % 10 == 0:
-			print( "running avg", numpy.mean( episode_rewards[-10:] ), numpy.mean( episode_lengths[-10,:] ) )
+		if episode % 10 == 0 and episode != 0:
+			print( "running avg", numpy.mean( episode_rewards[-10:] ), numpy.mean( episode_lengths[-10:] ) )
 
 
 
