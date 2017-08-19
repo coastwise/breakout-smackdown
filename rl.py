@@ -93,6 +93,10 @@ with tensorflow.Session() as session:
 			delta = play - prev_play
 			new_state = features.ball_and_paddle_state( play, delta )
 
+			if new_state[1] < 0:
+				reward = 0
+				done = True
+
 			history.append([ state, action, reward, new_state ])
 
 			state = new_state
