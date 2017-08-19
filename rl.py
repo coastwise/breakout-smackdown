@@ -64,7 +64,7 @@ with tensorflow.Session() as session:
 	for i, grad in enumerate( grad_buffer ):
 		grad_buffer[ i ] = grad * 0
 
-	for episode in range( 4 ):
+	for episode in range( 10000 ):
 		env.reset()
 
 		observation, reward, done, info = env.step( 0 ) # no-op	
@@ -99,8 +99,8 @@ with tensorflow.Session() as session:
 			total_reward += reward
 
 			if done:
-				print( "Episode finished after {} timesteps.", format( t+1 ) )
-				print( "total reward", total_reward )
+				#print( "Episode finished after {} timesteps.", format( t+1 ) )
+				#print( "total reward", total_reward )
 
 				history = numpy.array( history )
 				history[:,2] = discounted_rewards( history[:,2] )
@@ -123,12 +123,12 @@ with tensorflow.Session() as session:
 				episode_rewards.append( total_reward )
 				episode_lengths.append( t )
 
-				print( total_reward, t )
+				#print( total_reward, t )
 
 				break
 
-		if episode % 10 == 0 and episode != 0:
-			print( "running avg", numpy.mean( episode_rewards[-10:] ), numpy.mean( episode_lengths[-10:] ) )
+		if episode % 100 == 0 and episode != 0:
+			print( "running avg", numpy.mean( episode_rewards[-100:] ), numpy.mean( episode_lengths[-100:] ) )
 
 
 
