@@ -16,7 +16,7 @@ import tensorflow.contrib.slim as slim
 
 # what's relu? it's a "rectified linear unit"
 
-state_dimensions = 3 # TODO
+state_dimensions = 5 # TODO
 hidden_size = 18
 action_size = 3
 learning_rate = 0.01
@@ -74,7 +74,7 @@ with tensorflow.Session() as session:
 		play = features.extract_playarea_redchannel( observation )
 
 		delta = play - prev_play
-		state_i = features.ball_and_paddle_state( play, delta, [0,0,0] )
+		state_i = features.ball_and_paddle_state( play, delta, [0,0,0,0,0] )
 		state_f = features.normalize_state( state_i )
 
 		t = 1

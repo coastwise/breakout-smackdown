@@ -63,16 +63,22 @@ def ball_and_paddle_state( observation, delta, prev_state ):
 	paddle_start, paddle_end = detect_paddle( observation )
 	ball_x, ball_y = detect_ball( delta, paddle_start, paddle_end )
 
-	'''
+	prev_ball_x = prev_state[ 1 ]
+	prev_ball_y = prev_state[ 2 ]
+
+	delta_ball_x = prev_ball_x - ball_x
+	delta_ball_y = prev_ball_y - ball_y
+	
 	if ball_x < 0:
-		prev_ball_x = prev_state[ 1 ]
-		prev_ball_y = prev_state[ 2 ]
-		print( "double checking", prev_ball_x, prev_ball_y)
+		#print( "double checking", prev_ball_x, prev_ball_y)
 		if observation[ prev_ball_y, prev_ball_x ] == ball_colour[ 0 ]:
 			print( "last ball still here", prev_ball_x, prev_ball_y )
 			ball_x, ball_y = prev_ball_x, prev_ball_y
-	'''
-	return [ paddle_start, ball_x, ball_y ]
+		else:
+			delta_ball_x = 0
+			delta_ball_y = 0	
+
+	return [ paddle_start, ball_x, ball_y, delta_ball_x, delta_ball_y ]
 
 
 play_width = play_max_x - play_min_x
@@ -82,5 +88,7 @@ def normalize_state( int_state ):
 	return [
 		float( int_state[0] ) / ( play_width - 16 ),
 		float( int_state[1] ) / play_width,
-		float( int_state[2] ) / play_height
+		float( int_state[2] ) / play_height,
+		float( int_state[3] ) / 10,
+		float( int_state[4] ) / 10
 	]
