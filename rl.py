@@ -74,7 +74,8 @@ with tensorflow.Session() as session:
 		play = features.extract_playarea_redchannel( observation )
 
 		delta = play - prev_play
-		state = features.ball_and_paddle_state( play, delta )
+		state_i = features.ball_and_paddle_state( play, delta, [0,0,0] )
+		state_f = features.normalize_state( state_i )
 
 		t = 1
 		total_reward = 0
@@ -83,7 +84,7 @@ with tensorflow.Session() as session:
 		while not done:
 			t += 1
 
-			a_dist = session.run( nnoutput, feed_dict = {nninput:[ state ]})
+			a_dist = session.run( nnoutput, feed_dict = {nninput:[ state_f ]})
 			action = numpy.random.choice( a_dist[0], p = a_dist[0] )
 			action = numpy.argmax( a_dist == action )
 
@@ -91,15 +92,20 @@ with tensorflow.Session() as session:
 			observation, reward, done, info = env.step( action + 1 )
 			play = features.extract_playarea_redchannel( observation )
 			delta = play - prev_play
-			new_state = features.ball_and_paddle_state( play, delta )
 
-			if new_state[1] < 0:
-				reward = 0
+			new_state_i = features.ball_and_paddle_state( play, delta, state_i )
+			new_state_f = features.normalize_state( new_state_i )
+
+			# custom reward & end condition
+			reward = 1
+			if new_state_f[1] < 0:
+				# TODO: ball -1 happens even on good bounce sometimes... :/
 				done = True
 
-			history.append([ state, action, reward, new_state ])
+			history.append([ state_f, action, reward, new_state_f ])
 
-			state = new_state
+			state_i = new_state_i
+			state_f = new_state_f
 			total_reward += reward
 
 			if done:

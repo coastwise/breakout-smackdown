@@ -21,7 +21,7 @@ left_of_paddle_colour = [66, 158, 130]
 def detect_paddle( observation ):
 	paddle_start = paddle_max_x + 1
 	paddle_end = paddle_min_x - 1
-	
+
 	paddle_top = observation[157, :]
 	paddle = numpy.where( paddle_top == paddle_colour[0] )
 
@@ -37,12 +37,12 @@ def detect_paddle( observation ):
 	return paddle_start, paddle_end
 
 
+play_min_x = 8
+play_max_x = 151
+play_min_y = 32
+play_max_y = 204
 
 def extract_playarea_redchannel( observation ):
-	play_min_x = 8
-	play_max_x = 151
-	play_min_y = 32
-	play_max_y = 204
 	return observation[ play_min_y : play_max_y, play_min_x : play_max_x, 0 ].astype( numpy.int16 )
 
 
@@ -59,12 +59,28 @@ def detect_ball( delta, paddle_start, paddle_end ):
 
 	return -1, -1 # not found
 
-def ball_and_paddle_state( observation, delta ):
+def ball_and_paddle_state( observation, delta, prev_state ):
 	paddle_start, paddle_end = detect_paddle( observation )
 	ball_x, ball_y = detect_ball( delta, paddle_start, paddle_end )
 
-	paddle_f = float( paddle_start ) / ( observation.shape[ 1 ] - 16 )
-	ball_x_f = float( ball_x ) / observation.shape[ 1 ]
-	ball_y_f = float( ball_y ) / observation.shape[ 0 ]
+	'''
+	if ball_x < 0:
+		prev_ball_x = prev_state[ 1 ]
+		prev_ball_y = prev_state[ 2 ]
+		print( "double checking", prev_ball_x, prev_ball_y)
+		if observation[ prev_ball_y, prev_ball_x ] == ball_colour[ 0 ]:
+			print( "last ball still here", prev_ball_x, prev_ball_y )
+			ball_x, ball_y = prev_ball_x, prev_ball_y
+	'''
+	return [ paddle_start, ball_x, ball_y ]
 
-	return [ paddle_f, ball_x_f, ball_y_f ]
+
+play_width = play_max_x - play_min_x
+play_height = play_max_y - play_min_y
+
+def normalize_state( int_state ):
+	return [
+		float( int_state[0] ) / ( play_width - 16 ),
+		float( int_state[1] ) / play_width,
+		float( int_state[2] ) / play_height
+	]
