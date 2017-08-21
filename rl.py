@@ -85,8 +85,7 @@ with tensorflow.Session() as session:
 			t += 1
 
 			a_dist = session.run( nnoutput, feed_dict = {nninput:[ state_f ]})
-			action = numpy.random.choice( a_dist[0], p = a_dist[0] )
-			action = numpy.argmax( a_dist == action )
+			action = numpy.random.choice( action_size, p = a_dist[0] )
 
 			prev_play = play
 			observation, reward, done, info = env.step( action + 1 )
