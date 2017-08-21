@@ -49,18 +49,11 @@ def extract_playarea_redchannel( observation ):
 ball_colour = numpy.array([200,72,72])
 
 def detect_ball( obs, delta, paddle_start, paddle_end ):
-	red_pixels_y, red_pixels_x = numpy.where( obs == ball_colour[0] )
+	red_pixels_y, red_pixels_x = numpy.nonzero( delta[:156,:] )
 
-	for i in range( len( red_pixels_y ) ):
-		y = red_pixels_y[i]
-		if y >= 25 and y <= 30:
-			continue # this is overzealous, but only if the agent can break into the back rows...
-
-		if y >= 157 and y <= 160:
-			if red_pixels_x[i] >= paddle_start and red_pixels_x[i] <= paddle_end:
-				continue
-		return red_pixels_x[i], red_pixels_y[i]
-
+	if len( red_pixels_y ) > 0:
+		return red_pixels_x[ 0 ], red_pixels_y[ 0 ]
+	
 	return -1, -1 # not found
 
 def ball_and_paddle_state( observation, delta, prev_state ):
