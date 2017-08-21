@@ -1,3 +1,15 @@
+import getopt, sys
+try:
+	opts, args = getopt.getopt( sys.argv[1:], "", ["--headless"])
+except getopt.GetoptError as err:
+	print str( err )
+	sys.exit( 2 )
+
+headless = False
+for opt, arg in opts:
+	if opt == "--headless":
+		headless = True
+
 import numpy
 
 def discounted_rewards( actual_rewards ):
@@ -77,6 +89,9 @@ with tensorflow.Session() as session:
 		state_i = features.ball_and_paddle_state( play, delta, [0,0,0,0,0] )
 		state_f = features.normalize_state( state_i )
 
+		if not headless:
+			env.render()
+
 		t = 1
 		total_reward = 0
 		history = []
@@ -108,6 +123,9 @@ with tensorflow.Session() as session:
 			state_i = new_state_i
 			state_f = new_state_f
 			total_reward += reward
+
+			if not headless:
+				env.render()
 
 			if done:
 				#print( "Episode finished after {} timesteps.", format( t+1 ) )
