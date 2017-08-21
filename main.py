@@ -9,7 +9,7 @@ import breakout_feature_engineering as features
 # i'm only going to allow two: [right, left]
 rightleft_action_space = gym.spaces.Discrete(2)
 
-for episode in range( 4 ):
+for episode in range( 1 ):
 	env.reset()
 
 	observation, reward, done, info = env.step( 0 ) # no-op	
@@ -26,7 +26,7 @@ for episode in range( 4 ):
 	while not done:
 		t += 1
 
-		#env.render()
+		env.render()
 
 		ball_x, ball_y = state[1], state[2]
 		paddle_start, paddle_end = state[0], state[0]+16
@@ -50,9 +50,28 @@ for episode in range( 4 ):
 
 		new_state = features.ball_and_paddle_state( new_play, delta, state )
 
+		print( new_state )
+
 		if new_state[1] < 0:
 			# TODO: ball -1 happens even on good bounce sometimes... :/
 			done = True
+			numpy.set_printoptions(threshold=numpy.nan)
+			print( new_play )
+			play = new_play
+			state = new_state
+
+			print( "noop then quit" )
+
+			observation, reward, done, info = env.step( 1 )
+			new_play = features.extract_playarea_redchannel( observation )
+			delta = new_play - play
+
+			new_state = features.ball_and_paddle_state( new_play, delta, state )
+
+			print( new_state )
+			print( new_play )
+
+
 
 		play = new_play
 		state = new_state
