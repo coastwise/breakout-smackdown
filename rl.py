@@ -1,7 +1,7 @@
 import numpy
 
 def discounted_rewards( actual_rewards ):
-	discount = 0.99
+	discount = 0.8
 	result = numpy.zeros_like( actual_rewards )
 
 	cumulative_reward = 0
@@ -97,7 +97,9 @@ with tensorflow.Session() as session:
 			new_state_f = features.normalize_state( new_state_i )
 
 			# custom reward & end condition
-			reward = 1
+			if state_i[4] < 0 and new_state_i[4] > 0:
+				reward = 1
+
 			if new_state_f[1] < 0:
 				# TODO: ball -1 happens even on good bounce sometimes... :/
 				done = True
