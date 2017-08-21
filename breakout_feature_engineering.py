@@ -74,13 +74,15 @@ def ball_and_paddle_state( observation, delta, prev_state ):
 	delta_ball_y = prev_ball_y - ball_y
 	
 	if ball_x < 0:
-		#print( "double checking", prev_ball_x, prev_ball_y)
-		if observation[ prev_ball_y, prev_ball_x ] == ball_colour[ 0 ]:
-			print( "last ball still here", prev_ball_x, prev_ball_y )
-			ball_x, ball_y = prev_ball_x, prev_ball_y
-		else:
-			delta_ball_x = 0
-			delta_ball_y = 0	
+		if prev_ball_y < 150:
+			# ignore missing ball if it wasn't near the bottom of the screen
+			# it probably changed colours due to atari hardware limits
+			# TODO: more robust ball detection
+			ball_x = prev_ball_x
+			ball_y = prev_ball_y
+		# no ball, no dela ball
+		delta_ball_x = 0
+		delta_ball_y = 0			
 
 	return [ paddle_start, ball_x, ball_y, delta_ball_x, delta_ball_y ]
 
