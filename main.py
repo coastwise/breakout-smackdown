@@ -13,24 +13,23 @@ for episode in range( 4 ):
 	env.reset()
 
 	observation, reward, done, info = env.step( 0 ) # no-op	
+	prev_play = features.extract_playarea_redchannel( observation )
+
 	observation, reward, done, info = env.step( 1 ) # need to start by pressing "down"
+	play = features.extract_playarea_redchannel( observation )
+	delta = play - prev_play
+	state = features.ball_and_paddle_state( play, delta, [0,0,0,0,0] )
+
 	t = 1
 	total_reward = 0
 
-	play = features.extract_playarea_redchannel( observation )
-	prev_play = play
-	
 	while not done:
 		t += 1
 
 		#env.render()
 
-		delta = play - prev_play
-
-		paddle_start, paddle_end = features.detect_paddle( play )
-		ball_x, ball_y = features.detect_ball( delta, paddle_start, paddle_end )
-
-		paddle_mid = ( paddle_start + paddle_end ) / 2
+		ball_x, ball_y = state[1], state[2]
+		paddle_start, paddle_end = state[0], state[0]+16
 
 		if ball_x != -1 and ball_y != -1:
 
@@ -44,13 +43,22 @@ for episode in range( 4 ):
 		else:
 			action = 1 # down to serve
 
-		prev_play = play
+
 		observation, reward, done, info = env.step( action )
-		play = features.extract_playarea_redchannel( observation )
+		new_play = features.extract_playarea_redchannel( observation )
+		delta = new_play - play
+
+		new_state = features.ball_and_paddle_state( new_play, delta, state )
+
+		if new_state[1] < 0:
+			# TODO: ball -1 happens even on good bounce sometimes... :/
+			done = True
+
+		play = new_play
+		state = new_state
 		total_reward += reward
 
 		if done:
 			print( "Episode finished after {} timesteps.", format( t+1 ) )
-			print( info )
 			print( "total reward", total_reward )
 			break
