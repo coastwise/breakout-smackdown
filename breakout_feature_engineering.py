@@ -89,8 +89,11 @@ play_width = play_max_x - play_min_x
 play_height = play_max_y - play_min_y
 
 def normalize_state( int_state ):
+
+	paddle_range = 136
+
 	return [
-		float( int_state[0] ) / ( play_width - 16 ),
+		-1 + 2 * float( int_state[0] ) / paddle_range,
 		float( int_state[1] ) / play_width,
 		float( int_state[2] ) / play_height,
 		float( int_state[3] ) / 10,
