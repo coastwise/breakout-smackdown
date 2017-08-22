@@ -110,12 +110,16 @@ with tensorflow.Session() as session:
 			new_state_i = features.ball_and_paddle_state( play, delta, state_i )
 			new_state_f = features.normalize_state( new_state_i )
 
-			# custom reward & end condition
+			# custom reward
 			if state_i[4] < 0 and new_state_i[4] > 0:
-				reward = 1
+				# don't reward bounces near the sides of the play area as much,
+				# they're too easy
+				reward = 1 - 0.8 * abs( state_f[ 0 ] ) * abs( state_f[ 0 ] )
 
+			# custom end condition
 			if new_state_f[1] < 0:
-				# TODO: ball -1 happens even on good bounce sometimes... :/
+				# drop the ball? punish & game over
+				reward = -1
 				done = True
 
 			history.append([ state_f, action, reward, new_state_f ])
