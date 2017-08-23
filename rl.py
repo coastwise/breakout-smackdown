@@ -1,6 +1,6 @@
 import getopt, sys
 try:
-	opts, args = getopt.getopt( sys.argv[1:], "", ["--headless"])
+	opts, args = getopt.getopt( sys.argv[1:], "", ["headless"])
 except getopt.GetoptError as err:
 	print str( err )
 	sys.exit( 2 )
