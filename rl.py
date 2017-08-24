@@ -1,17 +1,23 @@
 import getopt, sys
 try:
-	opts, args = getopt.getopt( sys.argv[1:], "", ["model=", "justplay", "headless"])
+	opts, args = getopt.getopt( sys.argv[1:], "", ["model=", "episodes=", "justplay", "headless"])
 except getopt.GetoptError as err:
 	print str( err )
 	sys.exit( 2 )
 
+
 model_file = ''
+max_episodes = 1000
 headless = False
 just_play = False
+
 
 for opt, arg in opts:
 	if opt == "--model":
 		model_file = arg
+	if opt == "--episodes":
+		max_episodes = int( arg )
+		print 'max_episodes = {}'.format(max_episodes)
 	if opt == "--justplay":
 		just_play = True
 	if opt == "--headless":
@@ -91,7 +97,7 @@ with tensorflow.Session() as session:
 	for i, grad in enumerate( grad_buffer ):
 		grad_buffer[ i ] = grad * 0
 
-	for episode in range( 10000 ):
+	for episode in range( max_episodes ):
 		env.reset()
 
 		observation, reward, done, info = env.step( 0 ) # no-op	
