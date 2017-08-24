@@ -37,15 +37,16 @@ def discounted_rewards( actual_rewards ):
 
 	return result
 
+###############################################################################
+
 import tensorflow
 import tensorflow.contrib.slim as slim
 
-# what's relu? it's a "rectified linear unit"
-
-state_dimensions = 5 # TODO
+state_dimensions = 5
 hidden_size = 18
 action_size = 3
 learning_rate = 0.01
+
 nninput = tensorflow.placeholder( shape = [ None, state_dimensions ], dtype = tensorflow.float32 )
 nnhidden = slim.fully_connected(  nninput, hidden_size, activation_fn = tensorflow.nn.relu,    biases_initializer = None )
 nnoutput = slim.fully_connected( nnhidden, action_size, activation_fn = tensorflow.nn.softmax, biases_initializer = None )
@@ -70,7 +71,7 @@ gradients = tensorflow.gradients( loss, tvars )
 optimizer = tensorflow.train.AdamOptimizer( learning_rate = learning_rate )
 update_batch = optimizer.apply_gradients( zip( gradient_holders, tvars ) )
 
-###############################################
+###############################################################################
 
 import gym
 env = gym.make('Breakout-v0')
@@ -100,7 +101,7 @@ with tensorflow.Session() as session:
 	for episode in range( max_episodes ):
 		env.reset()
 
-		observation, reward, done, info = env.step( 0 ) # no-op	
+		observation, reward, done, info = env.step( 0 ) # no-op
 		prev_play = features.extract_playarea_redchannel( observation )
 
 		observation, reward, done, info = env.step( 1 ) # need to start by pressing "down"
@@ -116,7 +117,7 @@ with tensorflow.Session() as session:
 		t = 1
 		total_reward = 0
 		history = []
-		
+
 		while not done:
 			t += 1
 
