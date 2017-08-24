@@ -132,7 +132,7 @@ with tensorflow.Session() as session:
 				reward = 1 - 0.8 * abs( state_f[ 0 ] ) * abs( state_f[ 0 ] )
 
 			# custom end condition
-			if new_state_f[1] < 0:
+			if new_state_i[1] < 0:
 				# drop the ball? punish & game over
 				reward = -1
 				done = True
