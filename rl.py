@@ -1,14 +1,22 @@
 import getopt, sys
 try:
-	opts, args = getopt.getopt( sys.argv[1:], "", ["headless"])
+	opts, args = getopt.getopt( sys.argv[1:], "", ["model=", "justplay", "headless"])
 except getopt.GetoptError as err:
 	print str( err )
 	sys.exit( 2 )
 
+model_file = ''
 headless = False
+just_play = False
+
 for opt, arg in opts:
+	if opt == "--model":
+		model_file = arg
+	if opt == "--justplay":
+		just_play = True
 	if opt == "--headless":
 		headless = True
+
 
 import numpy
 
@@ -63,9 +71,18 @@ env = gym.make('Breakout-v0')
 
 import breakout_feature_engineering as features
 
+saver = tensorflow.train.Saver()
 init = tensorflow.global_variables_initializer()
 with tensorflow.Session() as session:
 	session.run( init )
+
+	if model_file != '':
+		print 'restoring {}'.format( model_file )
+		try:
+			saver.restore( sess = session, save_path = model_file )
+		except:
+			print 'failed'
+
 
 	episode_rewards = []
 	episode_lengths = []
@@ -161,8 +178,9 @@ with tensorflow.Session() as session:
 		if episode % 100 == 0 and episode != 0:
 			print( "running avg", numpy.mean( episode_rewards[-100:] ), numpy.mean( episode_lengths[-100:] ) )
 
-
-
+	if model_file != '':
+		print 'saving {}'.format( model_file )
+		saver.save( sess = session, save_path = model_file)
 
 
 
