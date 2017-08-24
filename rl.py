@@ -41,9 +41,7 @@ reward_holder = tensorflow.placeholder( shape = [ None ], dtype = tensorflow.flo
 action_holder = tensorflow.placeholder( shape = [ None ], dtype = tensorflow.int32 )
 
 output_shape = tensorflow.shape( nnoutput )
-indexes = tensorflow.range( 0, output_shape[ 0 ] )
-indexes *= output_shape[ 1 ]
-indexes += action_holder
+indexes = tensorflow.range( 0, output_shape[ 0 ] ) * output_shape[ 1 ] + action_holder
 
 responsible_outputs = tensorflow.gather( tensorflow.reshape( nnoutput, [-1] ), indexes )
 loss = -tensorflow.reduce_mean( tensorflow.log( responsible_outputs ) * reward_holder )
