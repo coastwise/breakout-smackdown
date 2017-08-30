@@ -50,26 +50,13 @@ learning_rate = 0.01
 nninput = tensorflow.placeholder( shape = [ None, state_dimensions ], dtype = tensorflow.float32 )
 nnhidden = slim.fully_connected(  nninput, hidden_size, activation_fn = tensorflow.nn.relu,    biases_initializer = None )
 nnoutput = slim.fully_connected( nnhidden, action_size, activation_fn = tensorflow.nn.softmax, biases_initializer = None )
-nnaction = tensorflow.argmax( nnoutput, 1 )
 
 reward_holder = tensorflow.placeholder( shape = [ None ], dtype = tensorflow.float32 )
-action_holder = tensorflow.placeholder( shape = [ None ], dtype = tensorflow.int32 )
+action_holder = tensorflow.placeholder( shape = [ None, 3 ], dtype = tensorflow.float32 )
 
-output_shape = tensorflow.shape( nnoutput )
-indexes = tensorflow.range( 0, output_shape[ 0 ] ) * output_shape[ 1 ] + action_holder
-
-responsible_outputs = tensorflow.gather( tensorflow.reshape( nnoutput, [-1] ), indexes )
-loss = -tensorflow.reduce_mean( tensorflow.log( responsible_outputs ) * reward_holder )
-
-tvars = tensorflow.trainable_variables()
-gradient_holders = []
-for i, var in enumerate( tvars ):
-	placeholder = tensorflow.placeholder( tensorflow.float32, name = str(i)+'_holder' )
-	gradient_holders.append( placeholder )
-
-gradients = tensorflow.gradients( loss, tvars )
-optimizer = tensorflow.train.AdamOptimizer( learning_rate = learning_rate )
-update_batch = optimizer.apply_gradients( zip( gradient_holders, tvars ) )
+action_readout = tensorflow.reduce_sum( nnoutput * action_holder, axis = 1 )
+loss = tensorflow.reduce_mean( tensorflow.square( reward_holder - action_readout ) )
+optimize = tensorflow.train.AdamOptimizer( learning_rate ).minimize( loss )
 
 ###############################################################################
 
@@ -94,10 +81,6 @@ with tensorflow.Session() as session:
 	episode_rewards = []
 	episode_lengths = []
 
-	grad_buffer = session.run( tensorflow.trainable_variables() )
-	for i, grad in enumerate( grad_buffer ):
-		grad_buffer[ i ] = grad * 0
-
 	for episode in range( max_episodes ):
 		env.reset()
 
@@ -121,8 +104,10 @@ with tensorflow.Session() as session:
 		while not done:
 			t += 1
 
-			a_dist = session.run( nnoutput, feed_dict = {nninput:[ state_f ]})
-			action = numpy.random.choice( action_size, p = a_dist[0] )
+			# choose next action
+			a_dist = session.run( nnoutput, feed_dict = {nninput:[ state_f ]})[0]
+			#action = numpy.random.choice( action_size, p = a_dist ) # pick random weighted by how good we think it is
+			action = numpy.argmax( a_dist ) # pick best
 
 			prev_play = play
 			observation, reward, done, info = env.step( action + 1 )
@@ -133,10 +118,9 @@ with tensorflow.Session() as session:
 			new_state_f = features.normalize_state( new_state_i )
 
 			# custom reward
-			if state_i[4] < 0 and new_state_i[4] > 0:
-				# don't reward bounces near the sides of the play area as much,
-				# they're too easy
-				reward = 1 - 0.8 * abs( state_f[ 0 ] ) * abs( state_f[ 0 ] )
+			if state_i[4] < 0 and new_state_i[4] >= 0:
+				# +1 for bounce
+				reward = 1
 
 			# custom end condition
 			if new_state_i[1] < 0:
@@ -144,7 +128,9 @@ with tensorflow.Session() as session:
 				reward = -1
 				done = True
 
-			history.append([ state_f, action, reward, new_state_f ])
+			actions = [0,0,0]
+			actions[action] = 1
+			history.append([ state_f, actions, reward, new_state_f ])
 
 			state_i = new_state_i
 			state_f = new_state_f
@@ -158,22 +144,16 @@ with tensorflow.Session() as session:
 				#print( "total reward", total_reward )
 
 				history = numpy.array( history )
+
 				history[:,2] = discounted_rewards( history[:,2] )
 
 				feed_dict = {
 					reward_holder : history[:,2],
-					action_holder : history[:,1],
+					action_holder : numpy.vstack( history[:,1] ),
 					nninput : numpy.vstack( history[:,0] )
 				}
-				grads = session.run( gradients, feed_dict = feed_dict )
-				for i, grad in enumerate( grads ):
-					grad_buffer[i] += grad
 
-				if i % 5 == 0 and i != 0:
-					feed_dict = dict( zip( gradient_holders, grad_buffer ) )
-					_ = session.run( update_batch, feed_dict = feed_dict )
-					for i, grad in enumerate( grad_buffer ):
-						grad_buffer[ i ] = grad * 0
+				session.run( optimize, feed_dict = feed_dict )
 
 				episode_rewards.append( total_reward )
 				episode_lengths.append( t )
